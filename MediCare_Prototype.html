@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediCare | Clinic Management System</title>
+  <style>
+    :root {
+      --primary: #1769aa;
+      --primary-dark: #104d80;
+      --pale: #eaf4fc;
+      --ink: #203040;
+      --muted: #667789;
+      --line: #dce5ed;
+      --surface: #ffffff;
+      --page: #f4f7fb;
+      --green: #16805d;
+      --amber: #9b6500;
+      --red: #b42318;
+      --radius: 16px;
+      --shadow: 0 8px 28px rgba(22, 52, 82, .07);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink); background: var(--page); line-height: 1.5;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { min-height: 100vh; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; padding: 17px 5vw; color: white;
+      background: linear-gradient(110deg, var(--primary-dark), var(--primary));
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid; place-items: center; width: 44px; height: 44px;
+      border-radius: 13px; background: rgba(255,255,255,.16);
+      font-size: 25px; font-weight: 700;
+    }
+    .brand h1 { font-size: 21px; margin: 0; letter-spacing: .2px; }
+    .brand p { margin: 1px 0 0; font-size: 12px; opacity: .85; }
+    .demo-label {
+      border: 1px solid rgba(255,255,255,.5); border-radius: 999px;
+      padding: 6px 11px; font-size: 12px; white-space: nowrap;
+    }
+    .layout {
+      display: grid; grid-template-columns: 240px minmax(0,1fr);
+      gap: 25px; max-width: 1440px; margin: 0 auto; padding: 28px 4vw;
+    }
+    .sidebar {
+      align-self: start; position: sticky; top: 18px; padding: 15px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .side-label {
+      margin: 8px 10px 10px; color: var(--muted);
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .nav-btn {
+      width: 100%; display: flex; align-items: center; gap: 11px;
+      border: 0; background: transparent; color: #405367; text-align: left;
+      padding: 12px 13px; margin: 3px 0; border-radius: 10px;
+    }
+    .nav-btn:hover { background: #f2f7fc; }
+    .nav-btn.active { background: var(--pale); color: var(--primary-dark); font-weight: 700; }
+    .nav-icon { width: 22px; text-align: center; font-size: 17px; }
+    main { min-width: 0; }
+    .page-heading {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; margin-bottom: 23px;
+    }
+    .page-heading h2 { margin: 0; font-size: clamp(23px, 3vw, 30px); }
+    .page-heading p { color: var(--muted); margin: 5px 0 0; }
+    .date-chip {
+      padding: 8px 12px; background: white; border: 1px solid var(--line);
+      border-radius: 10px; color: var(--muted); font-size: 13px; white-space: nowrap;
+    }
+    .stats {
+      display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 15px; margin-bottom: 22px;
+    }
+    .stat-card, .panel {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .stat-card { padding: 18px; }
+    .stat-top { display: flex; justify-content: space-between; align-items: center; }
+    .stat-icon {
+      display: grid; place-items: center; width: 37px; height: 37px;
+      border-radius: 11px; background: var(--pale); color: var(--primary); font-size: 18px;
+    }
+    .stat-card p { color: var(--muted); margin: 13px 0 4px; font-size: 13px; }
+    .stat-card strong { font-size: 28px; letter-spacing: -.6px; }
+    .panel { padding: 22px; margin-bottom: 20px; }
+    .panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; margin-bottom: 16px;
+    }
+    .panel h3 { margin: 0; font-size: 17px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .pill {
+      display: inline-block; padding: 4px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 700; background: #edf2f7; color: #536578;
+    }
+    .pill.waiting { background: #fff4d6; color: var(--amber); }
+    .pill.serving { background: #dff7ec; color: var(--green); }
+    .pill.done { background: #e9eef4; color: #5d6a78; }
+    .pill.pending { background: #e8f2ff; color: var(--primary-dark); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 560px; }
+    th, td { text-align: left; padding: 13px 12px; border-bottom: 1px solid #edf1f5; font-size: 13px; }
+    th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .patient-name { font-weight: 700; }
+    .btn {
+      border: 0; border-radius: 9px; padding: 10px 14px;
+      background: var(--primary); color: white; font-weight: 700; font-size: 13px;
+    }
+    .btn:hover { background: var(--primary-dark); }
+    .btn.secondary { color: var(--primary-dark); background: var(--pale); }
+    .btn.outline { background: white; border: 1px solid var(--line); color: var(--ink); }
+    .btn.danger { background: #fff0ee; color: var(--red); }
+    .btn.small { padding: 7px 10px; font-size: 12px; }
+    .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 700; color: #34485b; }
+    input, select, textarea {
+      width: 100%; padding: 11px 12px; border: 1px solid #cbd7e2;
+      border-radius: 9px; background: white; color: var(--ink); outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(23,105,170,.12);
+    }
+    textarea { resize: vertical; min-height: 95px; }
+    .notice {
+      padding: 12px 14px; background: #f0f7ff; border-left: 3px solid var(--primary);
+      color: #36536d; border-radius: 7px; font-size: 12px; margin: 14px 0 18px;
+    }
+    .empty-state { padding: 30px 10px; text-align: center; color: var(--muted); }
+    .record-card {
+      border: 1px solid var(--line); border-radius: 12px; padding: 15px;
+      display: flex; justify-content: space-between; gap: 14px; align-items: center;
+      margin-bottom: 10px;
+    }
+    .record-card h4 { margin: 0 0 4px; font-size: 14px; }
+    .record-card p { margin: 0; color: var(--muted); font-size: 12px; }
+    .hidden { display: none !important; }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 20px 28px; }
+    #toast {
+      position: fixed; bottom: 20px; right: 20px; max-width: 340px;
+      padding: 13px 17px; color: white; background: #203040; border-radius: 10px;
+      box-shadow: var(--shadow); z-index: 10;
+    }
+    @media (max-width: 1050px) {
+      .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .layout { grid-template-columns: 200px minmax(0,1fr); }
+    }
+    @media (max-width: 760px) {
+      .layout { display: block; padding: 18px 4vw; }
+      .sidebar { position: static; display: flex; overflow-x: auto; gap: 5px; margin-bottom: 22px; padding: 8px; }
+      .side-label { display: none; }
+      .nav-btn { min-width: max-content; width: auto; margin: 0; }
+      .nav-btn span:last-child { font-size: 12px; }
+      .topbar { padding: 14px 4vw; }
+      .demo-label { display: none; }
+      .page-heading { flex-direction: column; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .panel { padding: 16px; }
+    }
+    @media (max-width: 420px) {
+      .stats { grid-template-columns: 1fr 1fr; gap: 9px; }
+      .stat-card { padding: 13px; }
+      .stat-card strong { font-size: 23px; }
+      .stat-card p { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">+</div>
+        <div>
+          <h1>MediCare</h1>
+          <p>Clinic Management System</p>
+        </div>
+      </div>
+      <div class="demo-label">PROTOTYPE · SAMPLE DATA ONLY</div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" aria-label="Main navigation">
+        <div class="side-label">Workspace</div>
+        <button class="nav-btn active" data-page="dashboard"><span class="nav-icon">▦</span><span>Dashboard</span></button>
+        <button class="nav-btn" data-page="booking"><span class="nav-icon">＋</span><span>Book Appointment</span></button>
+        <button class="nav-btn" data-page="queue"><span class="nav-icon">◷</span><span>Smart Queue</span></button>
+        <button class="nav-btn" data-page="records"><span class="nav-icon">▤</span><span>Patient Records</span></button>
+        <button class="nav-btn" data-page="admin"><span class="nav-icon">⚙</span><span>Admin Overview</span></button>
+      </aside>
+
+      <main>
+        <section id="page-dashboard" class="page">
+          <div class="page-heading">
+            <div>
+              <h2>Clinic overview</h2>
+              <p>Monitor today's appointments and patient queue.</p>
+            </div>
+            <div class="date-chip" id="todayLabel">Today's clinic activity</div>
+          </div>
+          <div class="stats">
+            <article class="stat-card"><div class="stat-top"><span class="muted">Appointments</span><span class="stat-icon">▣</span></div><p>Scheduled today</p><strong id="statAppointments">0</strong></article>
+            <article class="stat-card"><div class="stat-top"><span class="muted">Waiting</span><span class="stat-icon">◷</span></div><p>In the queue</p><strong id="statWaiting">0</strong></article>
+            <article class="stat-card"><div class="stat-top"><span class="muted">Serving</span><span class="stat-icon">＋</span></div><p>Current consultation</p><strong id="statServing">0</strong></article>
+            <article class="stat-card"><div class="stat-top"><span class="muted">Completed</span><span class="stat-icon">✓</span></div><p>Visits completed</p><strong id="statDone">0</strong></article>
+          </div>
+          <section class="panel">
+            <div class="panel-header"><div><h3>Live queue</h3><span class="muted">Demo queue state updates when staff use the controls.</span></div><button class="btn secondary" onclick="showPage('queue')">Manage queue</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Queue no.</th><th>Patient</th><th>Consultation</th><th>Status</th><th>Action</th></tr></thead><tbody id="dashboardQueue"></tbody></table></div>
+          </section>
+          <section class="panel">
+            <div class="panel-header"><h3>Quick actions</h3><span class="muted">Shortcuts for clinic staff</span></div>
+            <div class="button-row">
+              <button class="btn" onclick="showPage('booking')">＋ New appointment</button>
+              <button class="btn secondary" onclick="showPage('queue')">◷ Open smart queue</button>
+              <button class="btn outline" onclick="showPage('records')">▤ View records</button>
+            </div>
+          </section>
+        </section>
+
+        <section id="page-booking" class="page hidden">
+          <div class="page-heading"><div><h2>Appointment request</h2><p>Patients can request a visit without creating an account.</p></div></div>
+          <section class="panel">
+            <div class="panel-header"><h3>Patient and schedule details</h3><span class="pill pending">Guest booking</span></div>
+            <form id="bookingForm">
+              <div class="form-grid">
+                <div class="field"><label for="patientName">Full name *</label><input id="patientName" required maxlength="100" autocomplete="name" placeholder="Enter full name"></div>
+                <div class="field"><label for="patientPhone">Contact number *</label><input id="patientPhone" required maxlength="30" autocomplete="tel" placeholder="e.g. 09XX XXX XXXX"></div>
+                <div class="field"><label for="patientEmail">Email (optional)</label><input id="patientEmail" type="email" maxlength="120" autocomplete="email" placeholder="name@example.com"></div>
+                <div class="field"><label for="visitType">Consultation type *</label><select id="visitType" required><option value="">Select consultation</option><option>General consultation</option><option>Follow-up visit</option><option>Preventive check-up</option><option>Other concern</option></select></div>
+                <div class="field"><label for="visitDate">Preferred date *</label><input id="visitDate" type="date" required></div>
+                <div class="field"><label for="visitTime">Preferred time *</label><select id="visitTime" required><option value="">Choose a time</option><option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option><option>1:00 PM</option><option>2:00 PM</option><option>3:00 PM</option></select></div>
+                <div class="field full"><label for="concern">Pre-consultation: briefly describe your concern *</label><textarea id="concern" required maxlength="1000" placeholder="Share the main reason for your visit. Avoid entering highly sensitive information in this demo."></textarea></div>
+              </div>
+              <div class="notice">This is a classroom prototype. Do not enter real patient or medical information. Submissions are stored only in this browser session and are not sent to a clinic.</div>
+              <button class="btn" type="submit">Submit appointment request</button>
+            </form>
+          </section>
+          <section id="confirmation" class="panel hidden" aria-live="polite"></section>
+        </section>
+
+        <section id="page-queue" class="page hidden">
+          <div class="page-heading"><div><h2>Smart queue</h2><p>Staff can track check-ins and move patients through the queue.</p></div><span class="pill waiting">Approximate waiting only</span></div>
+          <section class="panel">
+            <div class="panel-header"><h3>Queue management</h3><span class="muted">Use the action buttons to update a demo entry.</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Queue no.</th><th>Patient</th><th>Consultation</th><th>Status</th><th>Staff action</th></tr></thead><tbody id="queueTable"></tbody></table></div>
+          </section>
+          <div class="notice">Queue order and waiting estimates are illustrative. Actual waiting time depends on consultation duration and clinic workload.</div>
+        </section>
+
+        <section id="page-records" class="page hidden">
+          <div class="page-heading"><div><h2>Patient records</h2><p>Search the sample appointment list by name or reference number.</p></div></div>
+          <section class="panel">
+            <div class="field"><label for="recordSearch">Search records</label><input id="recordSearch" placeholder="Enter patient name or reference (e.g. A024)"></div>
+            <div class="notice">Only demo records created in this browser session appear here. A production system needs authenticated access, a secure database, audit logs, and appropriate privacy safeguards.</div>
+            <div id="recordsList"></div>
+          </section>
+        </section>
+
+        <section id="page-admin" class="page hidden">
+          <div class="page-heading"><div><h2>Admin overview</h2><p>A basic operational summary for authorized clinic administrators.</p></div></div>
+          <div class="stats">
+            <article class="stat-card"><p>Total demo records</p><strong id="adminTotal">0</strong></article>
+            <article class="stat-card"><p>Appointment requests</p><strong id="adminRequests">0</strong></article>
+            <article class="stat-card"><p>Queue waiting</p><strong id="adminWaiting">0</strong></article>
+            <article class="stat-card"><p>Visits completed</p><strong id="adminDone">0</strong></article>
+          </div>
+          <section class="panel">
+            <div class="panel-header"><h3>System scope</h3><span class="pill">Prototype</span></div>
+            <ul>
+              <li>Guest appointment requests and reference numbers</li>
+              <li>Pre-consultation information collection</li>
+              <li>Staff queue status controls</li>
+              <li>Sample patient visit records and basic counts</li>
+            </ul>
+            <p class="muted">Not implemented: real authentication, server-side authorization, permanent database storage, email/SMS notifications, medical decision support, prescriptions, and integrations.</p>
+            <button class="btn outline" onclick="exportDemoData()">Export demo data as JSON</button>
+          </section>
+        </section>
+      </main>
+    </div>
+    <footer>MediCare · Web-Based Clinic Management System · Educational prototype only</footer>
+  </div>
+  <div id="toast" class="hidden" role="status" aria-live="polite"></div>
+
+  <script>
+    // Demo-only data. Replace with a secure backend and database for real deployment.
+    const appointments = [
+      { ref: "A024", name: "Alex Santos", phone: "09XX XXX 1001", email: "", type: "General consultation", date: "", time: "9:00 AM", concern: "Routine consultation", status: "Waiting" },
+      { ref: "A025", name: "Jamie Reyes", phone: "09XX XXX 1002", email: "", type: "Follow-up visit", date: "", time: "9:30 AM", concern: "Follow-up appointment", status: "Serving" },
+      { ref: "A026", name: "Taylor Cruz", phone: "09XX XXX 1003", email: "", type: "Preventive check-up", date: "", time: "10:00 AM", concern: "General check-up", status: "Completed" }
+    ];
+    let nextNumber = 27;
+    let toastTimer;
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.remove("hidden");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.add("hidden"), 3000);
+    }
+    function showPage(page) {
+      document.querySelectorAll(".page").forEach(section => section.classList.add("hidden"));
+      const target = document.getElementById("page-" + page);
+      if (target) target.classList.remove("hidden");
+      document.querySelectorAll(".nav-btn").forEach(button => button.classList.toggle("active", button.dataset.page === page));
+      renderAll();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    document.querySelectorAll(".nav-btn").forEach(button => button.addEventListener("click", () => showPage(button.dataset.page)));
+
+    function statusPill(status) {
+      const css = status === "Waiting" ? "waiting" : status === "Serving" ? "serving" : "done";
+      return `<span class="pill ${css}">${status}</span>`;
+    }
+    function queueAction(item) {
+      if (item.status === "Waiting") return `<button class="btn small" onclick="updateStatus('${item.ref}','Serving')">Call patient</button>`;
+      if (item.status === "Serving") return `<button class="btn small secondary" onclick="updateStatus('${item.ref}','Completed')">Complete visit</button>`;
+      return `<span class="muted">No action needed</span>`;
+    }
+    function renderQueueTable(targetId) {
+      const target = document.getElementById(targetId);
+      const list = appointments.filter(a => a.status !== "Completed" || targetId === "queueTable");
+      if (!list.length) {
+        target.innerHTML = `<tr><td colspan="5" class="empty-state">No appointments yet.</td></tr>`;
+        return;
+      }
+      target.innerHTML = list.map(a => `
+        <tr>
+          <td><strong>${a.ref}</strong></td>
+          <td><span class="patient-name">${escapeHtml(a.name)}</span></td>
+          <td>${escapeHtml(a.type)}</td>
+          <td>${statusPill(a.status)}</td>
+          <td>${queueAction(a)}</td>
+        </tr>`).join("");
+    }
+    function updateStatus(ref, status) {
+      const item = appointments.find(a => a.ref === ref);
+      if (!item) return;
+      if (status === "Serving") {
+        appointments.forEach(a => { if (a.status === "Serving") a.status = "Waiting"; });
+      }
+      item.status = status;
+      renderAll();
+      showToast(`${ref} updated to ${status}.`);
+    }
+    function renderRecords() {
+      const search = (document.getElementById("recordSearch")?.value || "").toLowerCase().trim();
+      const filtered = appointments.filter(a => `${a.name} ${a.ref} ${a.type}`.toLowerCase().includes(search));
+      const target = document.getElementById("recordsList");
+      if (!filtered.length) {
+        target.innerHTML = `<div class="empty-state">No matching demo records found.</div>`;
+        return;
+      }
+      target.innerHTML = filtered.map(a => `
+        <article class="record-card">
+          <div><h4>${escapeHtml(a.name)} <span class="muted">· ${a.ref}</span></h4>
+          <p>${escapeHtml(a.type)} · ${escapeHtml(a.date || "Date not specified")} · ${escapeHtml(a.time || "Time not specified")}</p>
+          <p>Pre-consultation: ${escapeHtml(a.concern || "Not provided")}</p></div>
+          <div>${statusPill(a.status)}</div>
+        </article>`).join("");
+    }
+    function renderAll() {
+      const waiting = appointments.filter(a => a.status === "Waiting").length;
+      const serving = appointments.filter(a => a.status === "Serving").length;
+      const done = appointments.filter(a => a.status === "Completed").length;
+      document.getElementById("statAppointments").textContent = appointments.length;
+      document.getElementById("statWaiting").textContent = waiting;
+      document.getElementById("statServing").textContent = serving;
+      document.getElementById("statDone").textContent = done;
+      document.getElementById("adminTotal").textContent = appointments.length;
+      document.getElementById("adminRequests").textContent = appointments.length;
+      document.getElementById("adminWaiting").textContent = waiting;
+      document.getElementById("adminDone").textContent = done;
+      renderQueueTable("dashboardQueue");
+      renderQueueTable("queueTable");
+      renderRecords();
+    }
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+    }
+    document.getElementById("recordSearch").addEventListener("input", renderRecords);
+
+    document.getElementById("bookingForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const date = document.getElementById("visitDate").value;
+      const today = new Date(); today.setHours(0,0,0,0);
+      if (new Date(date + "T00:00:00") < today) {
+        showToast("Please choose today or a future date.");
+        return;
+      }
+      const ref = "A" + String(nextNumber++).padStart(3, "0");
+      const entry = {
+        ref,
+        name: document.getElementById("patientName").value.trim(),
+        phone: document.getElementById("patientPhone").value.trim(),
+        email: document.getElementById("patientEmail").value.trim(),
+        type: document.getElementById("visitType").value,
+        date,
+        time: document.getElementById("visitTime").value,
+        concern: document.getElementById("concern").value.trim(),
+        status: "Waiting"
+      };
+      appointments.push(entry);
+      const box = document.getElementById("confirmation");
+      box.innerHTML = `<h3>Appointment request recorded</h3><p>Your demo reference number is <strong>${ref}</strong>.</p><p class="muted">This is a prototype confirmation only. It does not guarantee a real clinic appointment.</p><button class="btn secondary" onclick="showPage('queue')">View queue</button>`;
+      box.classList.remove("hidden");
+      event.target.reset();
+      renderAll();
+      showToast(`Demo request created: ${ref}`);
+    });
+
+    function exportDemoData() {
+      const blob = new Blob([JSON.stringify(appointments, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url; link.download = "medicare-demo-data.json"; link.click();
+      URL.revokeObjectURL(url);
+      showToast("Demo data export started.");
+    }
+
+    const dateInput = document.getElementById("visitDate");
+    const localToday = new Date();
+    const localISO = `${localToday.getFullYear()}-${String(localToday.getMonth()+1).padStart(2,"0")}-${String(localToday.getDate()).padStart(2,"0")}`;
+    dateInput.min = localISO;
+    document.getElementById("todayLabel").textContent = localToday.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+    renderAll();
+  </script>
+</body>
+</html>
